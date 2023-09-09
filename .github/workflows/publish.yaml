@@ -1,0 +1,47 @@
+---
+
+name: Publish GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - site/**
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  upload:
+    name: Upload Pages
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: site/
+
+  deploy:
+    name: Deploy Pages
+    runs-on: ubuntu-22.04
+    needs: upload
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
